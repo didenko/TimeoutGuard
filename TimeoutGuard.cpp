@@ -1,5 +1,3 @@
-#pragma once
-
 #include "stdafx.h"
 #include "TimeoutGuard.h"
 
@@ -42,7 +40,7 @@ namespace utility
 			{
 				// Sleep indefinitely until either told to become active or destruct
 				std::unique_lock<std::mutex> live_lock( guard_mutex );
-				wakeup.wait( live_lock, [this]() { return ! idle.load() || ! this->live.load(); } );
+				wakeup.wait( live_lock, [this]() { return ! this->idle.load() || ! this->live.load(); } );
 			};
 
 			// quit the loop if destructing
@@ -55,6 +53,7 @@ namespace utility
 			{
 				idle.store( true );
 				alarm();
+				continue; // skip waiting for next timeout
 			}
 
 			{
