@@ -8,47 +8,68 @@ namespace utility
 	TimeoutGuard::TimeoutGuard(
 		clock::duration timeout,
 		std::function<void( void )> alarm,
-		unsigned short sleep_divisor
+		clock::duration naptime
 	)
 		: timeout( timeout )
 		, alarm( alarm )
-		, naptime( timeout / sleep_divisor )
+		, naptime( naptime )
 	{
 		idle.store( true );
 		live.store( true );
 
-		timer_thread = std::thread( std::bind( &TimeoutGuard::guard, this ) );
+		guard_thread = std::thread( std::bind( &TimeoutGuard::guard, this ) );
 	}
+
+	TimeoutGuard::TimeoutGuard(
+		clock::duration timeout,
+		std::function<void( void )> alarm
+	)
+	: TimeoutGuard( timeout, alarm, timeout )
+	{};
 
 	TimeoutGuard::~TimeoutGuard()
 	{
 		live.store( false );
-		timer_thread.join();
+		wakeup.notify_all();
+		guard_thread.join();
 	}
 
 	void TimeoutGuard::guard()
 	{
 		while ( live.load() )
 		{
-			if ( !idle.load() )
+			if ( idle.load() )
 			{
-				auto now = clock::now();
+				// Sleep indefinitely until either told to become active or destruct
+				std::unique_lock<std::mutex> live_lock( guard_mutex );
+				wakeup.wait( live_lock, [this]() { return ! idle.load() || ! this->live.load(); } );
+			};
 
-				if ((now - touched.load()) > timeout)
-				{
-					idle.store( true );
-					alarm();
-				}
+			// quit the loop if destructing
+			if ( ! live.load() ) break;
+
+			// the actual timeout checking
+			auto now = clock::now();
+
+			if ( ( now - touched.load() ) > timeout )
+			{
+				idle.store( true );
+				alarm();
 			}
 
-			std::this_thread::sleep_for( naptime );
+			{
+				// sleep until next timeout check or destruction
+				std::unique_lock<std::mutex> live_lock( guard_mutex );
+				wakeup.wait_for( live_lock, naptime, [this](){ return ! this->live.load(); } );
+			}
 		};
 	}
 
-	void TimeoutGuard::operator()()
+	void TimeoutGuard::watch()
 	{
 		touch();
 		idle.store( false );
+		wakeup.notify_all();
 	}
 
 	void TimeoutGuard::touch()

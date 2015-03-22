@@ -26,13 +26,12 @@ namespace utility
 			};
 
 			triggered = false;
-			tg();
+			tg.watch();
 			std::this_thread::sleep_for( std::chrono::milliseconds{ 10 } );
 			Assert::IsTrue( triggered, L"Failed to call the timeout alarm on the first run", LINE_INFO() );
 
-
 			triggered = false;
-			tg();
+			tg.watch();
 			std::this_thread::sleep_for( std::chrono::milliseconds{ 10 } );
 			Assert::IsTrue( triggered, L"Failed to call the timeout alarm on the second run", LINE_INFO() );
 		}
@@ -46,12 +45,12 @@ namespace utility
 			};
 
 			triggered = false;
-			tg();
+			tg.watch();
 			std::this_thread::sleep_for( std::chrono::milliseconds{ 1 } );
 			Assert::IsFalse( triggered, L"Wrongly called the timeout alarm on the first run", LINE_INFO() );
 
 			triggered = false;
-			tg();
+			tg.watch();
 			for (auto i = 0; i < 10; ++i)
 			{
 				std::this_thread::sleep_for( std::chrono::milliseconds{ 1 } );
