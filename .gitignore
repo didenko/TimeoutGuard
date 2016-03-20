@@ -37,6 +37,7 @@ x64/
 Debug/
 
 *.opensdf
+*.opendb
 *.idb
 *.ipch
 *.lastbuildstate
