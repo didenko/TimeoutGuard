@@ -56,10 +56,10 @@ namespace utility
 		clock::duration naptime;
 		std::function<void( void )> alarm;
 
-		std::atomic_bool idle;
-		std::atomic_bool live;
+		std::atomic_bool idle{ true };
+		std::atomic_bool live{ true };
 
-		std::atomic<clock::time_point> touched;
+		std::atomic<clock::time_point> touched{ clock::now() };
 
 		std::thread guard_thread;
 		std::mutex guard_mutex;

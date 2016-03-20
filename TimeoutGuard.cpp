@@ -12,9 +12,6 @@ namespace utility
 		, alarm( alarm )
 		, naptime( naptime )
 	{
-		idle.store( true );
-		live.store( true );
-
 		guard_thread = std::thread( std::bind( &TimeoutGuard::guard, this ) );
 	}
 
