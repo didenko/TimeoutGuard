@@ -11,11 +11,11 @@ namespace utility
 	{
 	public:
 
-		bool triggered = false;
+		std::atomic_bool triggered{ false };
 
 		void shoud_trigger()
 		{
-			triggered = true;
+			triggered.store( true );
 		}
 
 		TEST_METHOD( TimeoutGuardExpiration )
@@ -25,15 +25,15 @@ namespace utility
 				std::bind( &TimeoutGuardTest::shoud_trigger, this )
 			};
 
-			triggered = false;
+			triggered.store( false );
 			tg.watch();
 			std::this_thread::sleep_for( std::chrono::milliseconds{ 10 } );
-			Assert::IsTrue( triggered, L"Failed to call the timeout alarm on the first run", LINE_INFO() );
+			Assert::IsTrue( triggered.load(), L"Failed to call the timeout alarm on the first run", LINE_INFO() );
 
-			triggered = false;
+			triggered.store( false );
 			tg.watch();
 			std::this_thread::sleep_for( std::chrono::milliseconds{ 10 } );
-			Assert::IsTrue( triggered, L"Failed to call the timeout alarm on the second run", LINE_INFO() );
+			Assert::IsTrue( triggered.load(), L"Failed to call the timeout alarm on the second run", LINE_INFO() );
 		}
 
 
@@ -44,19 +44,19 @@ namespace utility
 				std::bind( &TimeoutGuardTest::shoud_trigger, this )
 			};
 
-			triggered = false;
+			triggered.store( false );
 			tg.watch();
 			std::this_thread::sleep_for( std::chrono::milliseconds{ 1 } );
-			Assert::IsFalse( triggered, L"Wrongly called the timeout alarm on the first run", LINE_INFO() );
+			Assert::IsFalse( triggered.load(), L"Wrongly called the timeout alarm on the first run", LINE_INFO() );
 
-			triggered = false;
+			triggered.store( false );
 			tg.watch();
 			for (auto i = 0; i < 10; ++i)
 			{
 				std::this_thread::sleep_for( std::chrono::milliseconds{ 1 } );
 				tg.touch();
 			}
-			Assert::IsFalse( triggered, L"Wrongly called the timeout alarm on the second run", LINE_INFO() );
+			Assert::IsFalse( triggered.load(), L"Wrongly called the timeout alarm on the second run", LINE_INFO() );
 		}
 	};
 }
