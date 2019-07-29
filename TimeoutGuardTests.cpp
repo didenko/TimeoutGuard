@@ -1,4 +1,6 @@
 #include "stdafx.h"
+#include "targetver.h"
+
 #include "CppUnitTest.h"
 
 #include "TimeoutGuard.h"
