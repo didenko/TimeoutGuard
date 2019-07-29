@@ -68,6 +68,12 @@ namespace utility
 		wakeup.notify_all();
 	}
 
+	void TimeoutGuard::unwatch() {
+		touch();
+		idle.store( true );
+		wakeup.notify_all();
+	}
+
 	void TimeoutGuard::touch()
 	{
 		touched.store( clock::now() );
