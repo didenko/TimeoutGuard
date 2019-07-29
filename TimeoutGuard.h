@@ -46,6 +46,7 @@ namespace utility
 		TimeoutGuard & operator=( TimeoutGuard && ) = delete;
 
 		void watch();
+                void unwatch();
 		void touch();
 
 	private:
